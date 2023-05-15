@@ -1,17 +1,30 @@
 <script lang="ts">
     export let isCounting = false
 
+    const prependZero = (time : number) => {
+        let prependedTime = time.toString();
+        if (prependedTime.length == 1) prependedTime = '0' + prependedTime;
+        return prependedTime;
+    }
+
+    const prependDoubleZero = (time : number) => {
+        let prependedTime = time.toString();
+        if (prependedTime.length == 1) prependedTime = '00' + prependedTime;
+        if (prependedTime.length == 2) prependedTime = '0' + prependedTime;
+        return prependedTime;
+    }
+
     let timer : NodeJS.Timer;
 
     let hours : number = 0
     let minutes : number = 0
     let seconds : number = 0
+    let miliseconds : number = 0
 
-    let hoursString : string = ''
-    if(hours > 1) hoursString =  ((hours < 10) ? '0' : '') + hours
-
-    let minutesString = ((minutes < 10) ? '0' : '') + minutes
-    let secondsString = ((seconds < 10) ? '0' : '') + seconds
+    let hoursString : string = prependZero(hours)
+    let minutesString : string = prependZero(minutes)
+    let secondsString : string = prependZero(seconds)
+    let milisecondsString : string = prependZero(miliseconds)
 
     const onKeyDown = (e: KeyboardEvent) => {
         if(e.code === 'Space') {
@@ -33,20 +46,27 @@
 
     const startTimer = () => {
         timer = setInterval(() => {
-            console.log("furtherTimer")
-            seconds = seconds + 1
-            if(seconds > 60) {
+            console.log('toggleTimer')
+            
+            miliseconds = miliseconds + 1
+
+            if(miliseconds == 100) {
+                miliseconds = 0
+                seconds = seconds + 1
+            }
+
+            if(seconds == 60) {
                 seconds = 0
                 minutes = minutes + 1
             }
 
-            if(minutes > 60) {
+            if(minutes == 60) {
                 minutes = 0
                 hours = hours + 1
             }
             
             updateTimeStrings()
-        }, 1000)
+        }, 10)
     }
 
     const stopTimer = () => {
@@ -58,6 +78,7 @@
         hours = 0
         minutes = 0
         seconds = 0
+        miliseconds = 0
         clearInterval(timer)
         updateTimeStrings()
     }
@@ -66,12 +87,7 @@
         hoursString = prependZero(hours)
         minutesString = prependZero(minutes)
         secondsString = prependZero(seconds)
-    }
-
-    const prependZero = (time : number) => {
-        let prependedTime = time.toString();
-        if (prependedTime.length == 1) prependedTime = '0' + prependedTime;
-        return prependedTime;
+        milisecondsString = prependZero(miliseconds)
     }
 
 </script>
@@ -94,12 +110,15 @@
         type="text"
         pattern="[0-9]*"
         bind:value={ secondsString } />
+
+    <span class="mili">.{ milisecondsString }</span>
 </div>
 
 <svelte:window on:keydown={onKeyDown} />
 
 <style lang="scss">
     .clock {
+        position: relative;
         text-align: center;
         opacity: 0.5;
         display: flex;
@@ -116,6 +135,7 @@
             padding: 0;
             font-size: 10rem;
             line-height: 10rem;
+            letter-spacing: -2rem;
             color: #FFFFFF;
             text-align: center;
 	        font-family: 'Major Mono Display', monospace;
@@ -125,6 +145,15 @@
             width: 230px;
             border: none;
             background: transparent;
+        }
+
+        .mili {
+            position: absolute;
+            bottom: -1rem;
+            right: 0;
+            font-size: 1rem;
+            line-height: 1rem;
+            letter-spacing: 0;
         }
     }
 </style>
